@@ -20,12 +20,18 @@
 }
 
 
+.profile-header{
+    width: 40%;
+    text-align: start;
+}
+
 
 .login{
-    border: .5px solid #e0e0e0;
+    border: .5px solid gray;
     border-radius: 5px;
     padding: 30px;
     width: 500px;
+    background-color: #212121;
     height: fit-content;
 }
 
@@ -50,7 +56,7 @@
     padding-right: 90px;
     padding-left: 10px;
     border-radius: 5px;
-    border: 1px solid #e0e0e0;
+    border: 1px solid gray;
     /* margin-left: 5px; */
     outline: none;
 
@@ -62,6 +68,15 @@
     height: 150px;
 }
 
+
+.profile-header h2{
+    margin-top: 10px;
+    font-size: 1.5rem;
+    color: #e0e0e0;
+    margin-bottom: 7px;
+    margin-left: 0;
+    text-align: start;
+}
 
 .email-log{
     display: flex;
@@ -84,9 +99,11 @@
 
 
 .register{
-    border: .5px solid #e0e0e0;
+    border: .5px solid gray;
     border-radius: 5px;
     padding: 20px;
+    background-color: #212121;
+
     width: 500px;
     /* height: 300px; */
 }
@@ -112,7 +129,7 @@
     padding-right: 90px;
     padding-left: 10px;
     border-radius: 5px;
-    border: 1px solid #e0e0e0;
+    border: 1px solid gray;
     /* margin-left: 5px; */
     outline: none;
 
@@ -180,7 +197,7 @@ select{
     padding-right: 90px;
     padding-left: 10px;
     border-radius: 5px;
-    border: 1px solid #e0e0e0;
+    border: 1px solid gray;
     /* margin-left: 5px; */
     outline: none;
 }
@@ -215,6 +232,27 @@ select{
 
 
 
+.admin-buttons{
+    margin-top:50px ;
+}
+
+.admin-button{
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+.auctioneer-button{
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+.auctioneer-buttons{
+    margin-top: 50px ;
+}
+
+
 /* media queries */
 
 @media screen and (max-width: 768px) {
@@ -233,6 +271,18 @@ select{
     .profile-header {
         margin: 0 auto;
         width: 100%;
+        text-align: center;
+        align-items: center;
+    }
+
+    .profile-header h2 {
+        text-align: center;
+    }
+
+    .auctioneer-button{
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
     }
 
     .update-acc {
@@ -302,6 +352,11 @@ select{
     .profile-header img {
         width: 100px;
         height: 100px;
+    }
+
+    .profile-header{
+        width: 100%;
+        text-align: center;
     }
 
     .profile-container {

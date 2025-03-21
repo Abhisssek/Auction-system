@@ -28,31 +28,29 @@ exports.placeBid = async (req, res) => {
         .json({ message: "Bid amount should be greater than starting price" });
     }
 
+    // Prevent a bidder from bidding again unless someone else has bid
+    if (auctionItem.highestbidder?.toString() === req.user._id.toString()) {
+      return res
+        .status(400)
+        .json({ message: "You can't bid again until another user bids" });
+    }
+
     // Check if the user has already placed a bid in this auction
     const existingBid = await Bid.findOne({
       bidder: req.user._id,
-      auctionitem: auctionItem._id, // Corrected reference
+      auctionitem: auctionItem._id,
     });
 
     if (existingBid) {
-      // Update existing bid
       existingBid.amount = amount;
       await existingBid.save();
     } else {
-      // Fetch bidder details
-      const bidderDetail = await User.findById(req.user._id);
-      if (!bidderDetail) {
-        return res.status(404).json({ message: "Bidder not found" });
-      }
-
-      // Create a new bid
       await Bid.create({
         amount,
-        bidder: req.user._id, // Correct reference
-        auctionitem: auctionItem._id, // Correct reference
+        bidder: req.user._id,
+        auctionitem: auctionItem._id,
       });
 
-      // Push new bid to auctionItem
       auctionItem.bids.push({
         user: req.user._id,
         amount,
@@ -69,12 +67,23 @@ exports.placeBid = async (req, res) => {
       .sort({ amount: -1 })
       .populate("bidder", "name email");
 
+
+
+    // 🔥 Emit event to update all clients in real time
+    const io = req.app.get("socketio");
+    io.emit("updateBid", {
+      auctionId: auctionItem._id,
+      currentbid: auctionItem.currentbid,
+      highestbidder: auctionItem.highestbidder,
+      auctionBids,
+    });
+
     res.status(201).json({
       success: true,
       message: "Bid placed successfully.",
       currentbid: auctionItem.currentbid,
       highestbidder: auctionItem.highestbidder,
-      auctionBids
+      auctionBids,
     });
   } catch (error) {
     console.error("Error placing bid:", error);

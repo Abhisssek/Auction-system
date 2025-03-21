@@ -10,7 +10,7 @@ route.post('/register', register);
 route.post('/login', login);
 route.get('/logout', logout);
 route.get('/profile', isAuthenticatedUser, getUserProfile);
-// route.get('/admin/users', isAuthenticatedUser, authorizeRoles('admin'), getAllUsers);
+route.get('/allusers', isAuthenticatedUser, getAllUsers);
 route.put('/profile/update', isAuthenticatedUser, updateUserProfile);
 route.put('/password/update', isAuthenticatedUser, updatePassword);
 

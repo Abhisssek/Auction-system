@@ -17,6 +17,7 @@ export const MyAccount = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [data, setData] = useState({ user: {} });
   const [userData, setUserData] = useState({});
+  const [userRole, setUserRole] = useState("");
 
   const navigate = useNavigate();
 
@@ -70,7 +71,6 @@ export const MyAccount = () => {
 
       const data = await response.json();
       console.log(data);
-      
 
       if (response.ok) {
         toast.success("Registration successful! Now Login to continue.");
@@ -165,6 +165,18 @@ export const MyAccount = () => {
           );
         }
         const datas = await response.json();
+        console.log(datas);
+
+        if (datas.user.role === "admin") {
+          setUserRole("admin");
+        }
+        if (datas.user.role === "auctioneer") {
+          setUserRole("auctioneer");
+        }
+        if (datas.user.role === "bidder") {
+          setUserRole("bidder");
+        }
+
         setUserData(datas.user);
         console.log("Profile data:", datas);
       } catch (error) {
@@ -194,7 +206,7 @@ export const MyAccount = () => {
                     alt="Profile"
                     width="150"
                   />
-                  <h2 className="mt-3">{userData.profilename}</h2>
+                  <h2 className="">{userData.profilename}</h2>
                   <p className="text-yellow email">{userData.email}</p>
                   <button
                     className="btn btn-danger mt-2"
@@ -202,6 +214,45 @@ export const MyAccount = () => {
                   >
                     Logout
                   </button>
+                  {userRole === "admin" && (
+                    <div className="admin-buttons ">
+                      <h3>Admin Panel</h3>
+                      <div className="admin-button">
+                      <Link to="/all-payment-proof">
+                        <button className="btn btn-info">
+                          All Payment Proof
+                        </button>
+                      </Link>
+                      
+                      
+                      <Link to="/all-users">
+                        <button className="btn btn-secondary">All Users</button>
+                      </Link>
+                      <Link to="/all-auctions">
+                        <button className="btn btn-success">
+                          All Auctions
+                        </button>
+                      </Link>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ✅ Show Auctioneer Buttons */}
+                  {userRole === "auctioneer" && (
+                    <div className="auctioneer-buttons">
+                      <h3>Auctioneer Panel</h3>
+                      <div className="auctioneer-button">
+                      <Link to="/my-auctions">
+                        <button className="btn btn-primary">My Auctions</button>
+                      </Link>
+                      <Link to="/create-auction">
+                        <button className="btn btn-success">
+                          Create Auction
+                        </button>
+                      </Link>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="profile-details mt-4">
@@ -240,11 +291,13 @@ export const MyAccount = () => {
                     {userData.stripeAccountId}
                   </p>
                   <div className="update-acc mt-5">
-                  <Link to="/update-account"><button className="update-btn secondary-btn ">Update Details/Password</button></Link>
-                
+                    <Link to="/update-account">
+                      <button className="update-btn secondary-btn ">
+                        Update Details/Password
+                      </button>
+                    </Link>
+                  </div>
                 </div>
-                </div>
-               
               </div>
             </>
           ) : (
@@ -282,7 +335,8 @@ export const MyAccount = () => {
                   <form method="POST" onSubmit={handleRegister}>
                     <div className="profileimg-reg">
                       <label>Profile Image</label>
-                      <input className="form-control"
+                      <input
+                        className="form-control"
                         type="file"
                         onChange={(e) => setProfileImg(e.target.files[0])}
                       />

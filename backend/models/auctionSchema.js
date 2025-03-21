@@ -7,17 +7,21 @@ const auctionSchema = new mongoose.Schema({
     category: { type: String, required: true },
     condition: {
         type: String,
-        enum: ['new', 'used'],
+        enum: ['new', 'old'],
         required: true
     },
+    artcreater: { type: String, required: true },
+    artstyle: { type: String, required: true },
+    artmadedate: { type: String, required: true },
     currentbid: { type: Number, default: 0 },
     starttime: { type: String, required: true },
     endtime: { type: String, required: true },
-    image: {
+    images: [{
         public_id: { type: String, required: true },
         url: { type: String, required: true }
-    },
-    createdby: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    }],
+    createdby: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // Reference to User
+    sellername: { type: String }, // New field for storing seller name
     bids: [{
         user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         amount: { type: Number, required: true },

@@ -10,12 +10,39 @@ exports.addNewAuctionItem = async (req, res) => {
     if (!req.files || Object.keys(req.files).length === 0)
       return res.status(400).json({ msg: "No files were uploaded." });
 
-    const { image } = req.files;
+    const { images } = req.files; // Handle multiple images
     const allowedFormats = ["image/jpeg", "image/png", "image/jpg"];
-    if (!allowedFormats.includes(image.mimetype))
-      return res.status(400).json({
-        msg: "Invalid file format. Please upload a valid image file.",
+    console.log("Received files:", req.files);
+
+
+    let imageArray = Array.isArray(images) ? images : [images]; // Ensure it's an array
+    let uploadedImages = [];
+
+    for (const image of imageArray) {
+      if (!allowedFormats.includes(image.mimetype)) {
+        return res.status(400).json({
+          msg: "Invalid file format. Please upload valid image files.",
+        });
+      }
+
+      const cloudinaryResponse = await cloudinary.uploader.upload(
+        image.tempFilePath,
+        { folder: "MERN_AUCTION_PLATFORM_AUCTIONS" }
+      );
+
+      if (!cloudinaryResponse || cloudinaryResponse.error) {
+        console.error(
+          "Cloudinary error:",
+          cloudinaryResponse.error || "Unknown Cloudinary error."
+        );
+        return res.status(500).json({ msg: "Failed to upload auction images" });
+      }
+
+      uploadedImages.push({
+        url: cloudinaryResponse.secure_url,
+        public_id: cloudinaryResponse.public_id,
       });
+    }
 
     const {
       title,
@@ -25,6 +52,9 @@ exports.addNewAuctionItem = async (req, res) => {
       startingBid,
       startTime,
       endingTime,
+      artcreater,
+      artstyle,
+      artmadedate,
     } = req.body;
 
     if (
@@ -34,11 +64,13 @@ exports.addNewAuctionItem = async (req, res) => {
       !condition ||
       !startingBid ||
       !startTime ||
-      !endingTime
+      !endingTime ||
+      !artcreater ||
+      !artstyle ||
+      !artmadedate
     )
       return res.status(400).json({ msg: "Please fill in all fields." });
 
-    // Convert string timestamps to Date objects
     if (new Date(startTime) < Date.now()) {
       return res
         .status(400)
@@ -49,9 +81,11 @@ exports.addNewAuctionItem = async (req, res) => {
         .status(400)
         .json({ msg: "Auction ending time must be after the starting time." });
     }
+
     const alreadyOneAuctionActive = await Auction.findOne({
       createdby: req.user.id,
       endtime: { $gte: new Date() },
+      status: "Active",
     });
 
     if (alreadyOneAuctionActive)
@@ -59,35 +93,27 @@ exports.addNewAuctionItem = async (req, res) => {
         .status(400)
         .json({ msg: "You already have an active auction." });
 
-    const cloudinaryResponse = await cloudinary.uploader.upload(
-      image.tempFilePath,
-      {
-        folder: "MERN_AUCTION_PLATFORM_AUCTIONS",
-      }
-    );
-    if (!cloudinaryResponse || cloudinaryResponse.error) {
-      console.error(
-        "Cloudinary error:",
-        cloudinaryResponse.error || "Unknown cloudinary error."
-      );
-      return res.status(500).json({ msg: "failed to upload auction image" });
-    }
-
-    const newAuction = new Auction({
-      title,
-      description,
+    
+    
+        
+        
+        const newAuction = new Auction({
+          title,
+          description,
       category,
       condition,
-      startingprice: startingBid, // Fixing 'startingprice' field
-      starttime: new Date(startTime), // Fix field name
-      endtime: new Date(endingTime), // Fix field name
-      image: {
-        url: cloudinaryResponse.secure_url,
-        public_id: cloudinaryResponse.public_id,
-      },
+      artcreater,
+      artstyle,
+      artmadedate,
+      startingprice: startingBid,
+      starttime: new Date(startTime),
+      endtime: new Date(endingTime),
+      images: uploadedImages, // Store multiple images
       createdby: req.user.id,
+      sellername: User.profilename
     });
-
+    console.log("Uploaded images array:", uploadedImages);
+    
     await newAuction.save();
     return res
       .status(201)
@@ -151,25 +177,39 @@ exports.getMyAuctions = async (req, res) => {
 exports.removeAuction = async (req, res) => {
   try {
     const { id } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(id))
-      return res.status(400).json({ msg: "Invalid auction id." });
 
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ msg: "Invalid auction ID." });
+    }
+
+    // Find the auction
     const auction = await Auction.findById(id);
-    if (!auction) return res.status(404).json({ msg: "Auction not found." });
+    if (!auction) {
+      return res.status(404).json({ msg: "Auction not found." });
+    }
 
-    if (auction.createdby.toString() !== req.user.id)
-      return res
-        .status(403)
-        .json({ msg: "Unauthorized to delete this auction." });
+    // Check if the user is the auction creator
+    if (auction.createdby.toString() !== req.user.id) {
+      return res.status(403).json({ msg: "Unauthorized to delete this auction." });
+    }
 
-    // Delete the auction image from cloudinary
-    await cloudinary.uploader.destroy(auction.image.public_id);
+    // Delete auction images from Cloudinary
+    if (auction.images && auction.images.length > 0) {
+      for (const img of auction.images) {
+        if (img.public_id) {
+          await cloudinary.uploader.destroy(img.public_id);
+        }
+      }
+    }
 
+    // Delete auction from the database
     await Auction.deleteOne({ _id: id });
+
     return res.status(200).json({ msg: "Auction deleted successfully." });
   } catch (error) {
     console.error("Error deleting auction:", error);
-    return res.status(500).json({ msg: error.message });
+    return res.status(500).json({ msg: "Internal server error." });
   }
 };
 
