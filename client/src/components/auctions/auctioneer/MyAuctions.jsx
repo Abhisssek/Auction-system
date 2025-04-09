@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import io from "socket.io-client";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./MyAuction.css";
 import { Navbar } from "../../Navbar/Navbar";
@@ -19,6 +19,7 @@ export const MyAuctions = () => {
   const [userRole, setUserRole] = useState("");
   const [userId, setUserId] = useState(null);
   const navigate = useNavigate();
+  const[haveAuction, setHaveAuction] = useState(true)
 
   useEffect(() => {
     fetchAuctions();
@@ -41,6 +42,12 @@ export const MyAuctions = () => {
       }
 
       const data = await response.json();
+      console.log("auction data", data);
+
+      if(data.length>0){
+        setHaveAuction(false)
+      }
+      
       data.sort((a, b) => new Date(b.starttime) - new Date(a.starttime));
 
       const updatedData = data.map((auction) => ({
@@ -89,8 +96,6 @@ export const MyAuctions = () => {
   }, []);
 
   const deleteAuction = async (auctionId) => {
-    console.log(auctionId);
-
     try {
       const response = await fetch(
         `http://localhost:3000/api/v1/auction/delete/${auctionId}`,
@@ -99,96 +104,80 @@ export const MyAuctions = () => {
           credentials: "include",
         }
       );
-
+  
       if (!response.ok) {
         throw new Error("Failed to delete auction");
       }
-
+  
       setAuctions((prevAuctions) =>
         prevAuctions.filter((auction) => auction._id !== auctionId)
       );
-
-      toast.success("Auction deleted successfully!", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        theme: "colored",
-      });
-
+  
+      // ✅ Move toast outside to ensure it executes
+      toast.success("Auction deleted successfully!");
+  
     } catch (error) {
       console.error("Error deleting auction:", error);
-      toast.error("Failed to delete auction!", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        theme: "colored",
-      });
+  
+      toast.error("Failed to delete auction!");
     }
   };
+  
 
   return (
     <div className="auctions-container">
+       <ToastContainer position="top-right" autoClose={4000} />
       <Navbar />
       <h2>My Auctions</h2>
-      <div className="auctions-grid">
-        {auctions.map((auction) => (
-          <div key={auction._id} className="auction-card">
-            <img
-              src={auction.images?.length > 0 ? auction.images[0].url : "fallback-image-url"}
-              alt={auction.title}
-              className="auction-image"
-              onClick={() => navigate(`/auction/${auction._id}`)}
-              style={{ cursor: "pointer" }}
-            />
-            <div className="auction-text">
-              <h3
-                style={{ cursor: "pointer" }}
-                onClick={() => navigate(`/auction/${auction._id}`)}
-                className="auction-title"
-              >
-                {auction.title}
-              </h3>
-              <p className="auction-description">{auction.description}</p>
-              <p className="auction-price">
-                Artist: <span className="auction-text-span">{auction.artcreater}</span>
-              </p>
-              <p className="auction-price">
-                Category: <span className="auction-text-span">{auction.category}</span>
-              </p>
-              <p className="auction-price">
-                Starting Price: <span style={{ fontWeight: "700" }}>${auction.startingprice}</span>
-              </p>
-              <AuctionCountdown auction={auction} />
+      {haveAuction ? <h1 className="no-auction-h1">you haven't create any auction</h1>
+       : <div className="auctions-grid">
+       {auctions.map((auction) => (
+         <div key={auction._id} className="auction-card">
+           <img
+             src={auction.images?.length > 0 ? auction.images[0].url : "fallback-image-url"}
+             alt={auction.title}
+             className="auction-image"
+             onClick={() => navigate(`/auction/${auction._id}`)}
+             style={{ cursor: "pointer" }}
+           />
+           <div className="auction-text">
+             <h3
+               style={{ cursor: "pointer" }}
+               onClick={() => navigate(`/auction/${auction._id}`)}
+               className="auction-title"
+             >
+               {auction.title}
+             </h3>
+             <p className="auction-description">{auction.description}</p>
+             <p className="auction-price">
+               Artist: <span className="auction-text-span">{auction.artcreater}</span>
+             </p>
+             <p className="auction-price">
+               Category: <span className="auction-text-span">{auction.category}</span>
+             </p>
+             <p className="auction-price">
+               Starting Price: <span style={{ fontWeight: "700" }}>${auction.startingprice}</span>
+             </p>
+             <AuctionCountdown auction={auction} />
 
-              {userRole === "auctioneer" && userId === auction.createdby && (
-                <div className="auction-btns">
-                  <button onClick={() => deleteAuction(auction._id)} className="delete-btn secondary-btn">
-                    Delete Auction
-                  </button>
-                  {new Date() > new Date(auction.endtime) && (
-                    <button onClick={() => navigate(`/republish/${auction._id}`)} className="republish-btn primary-btn">
-                      Republish Auction
-                    </button>
-                  )}
-                </div>
-              )}
+             {userRole === "auctioneer" && userId === auction.createdby && (
+               <div className="auction-btns">
+                 <button onClick={() => deleteAuction(auction._id)} className="delete-btn secondary-btn">
+                   Delete Auction
+                 </button>
+                 {new Date() > new Date(auction.endtime) && (
+                   <button onClick={() => navigate(`/republish-auction/${auction._id}`)} className="republish-btn primary-btn">
+                     Republish Auction
+                   </button>
+                 )}
+               </div>
+             )}
 
-              {userRole === "bidder" && (
-                <button onClick={() => navigate(`/auction/${auction._id}`)} className="bid-btn secondary-btn">
-                  Start Bidding
-                </button>
-              )}
-
-            </div>
-          </div>
-        ))}
-      </div>
+             
+           </div>
+         </div>
+       ))}
+     </div>}
     </div>
   );
 };

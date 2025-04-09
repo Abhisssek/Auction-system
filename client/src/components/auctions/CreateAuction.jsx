@@ -20,6 +20,7 @@ export const CreateAuction = () => {
     endingTime: "",
     images: [], // ✅ Changed from `image` to `images` (array)
   });
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
@@ -38,6 +39,7 @@ export const CreateAuction = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true); // Start loading
 
     try {
       const formDataToSend = new FormData();
@@ -47,7 +49,6 @@ export const CreateAuction = () => {
         }
       });
 
-      // ✅ Append multiple images
       formData.images.forEach((image) => {
         formDataToSend.append("images", image);
       });
@@ -63,14 +64,19 @@ export const CreateAuction = () => {
 
       if (!response.ok) {
         toast.error(data.msg || "Failed to create auction");
+        setLoading(false);
         return;
       }
 
       toast.success("Auction created successfully!");
-      setTimeout(() => navigate("/my-auctions"), 4000);
+      setTimeout(() => {
+        setLoading(false);
+        navigate("/my-auctions");
+      }, 4000);
     } catch (error) {
       console.error("Error:", error.message);
       toast.error(error.message);
+      setLoading(false);
     }
   };
 
@@ -204,8 +210,8 @@ export const CreateAuction = () => {
             required
           />
 
-          <button type="submit" className="primary-btn">
-            Create Auction
+          <button type="submit" className="primary-btn" disabled={loading}>
+            {loading ? <span className="loader"></span> : "Create Auction"}
           </button>
         </form>
       </div>

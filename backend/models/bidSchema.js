@@ -7,6 +7,7 @@ const bidSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
+    biddername: { type: String, required: true },
     biddingtime:{
         type: Date,
         default: Date.now

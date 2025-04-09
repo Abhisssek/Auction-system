@@ -315,10 +315,23 @@ select{
     }
 }
 
+
+@media screen and (max-width: 789px){
+    .my-auction-btn{
+        margin-bottom: 10px;
+    }
+    .commission-proof-btn{
+        margin-top: 10px;
+    }
+}
+
 @media  screen and (max-width: 1170px) {
     .profile-header img {
         width: 150px;
         height: 150px;
+    }
+    .commission-proof-btn{
+        margin-top: 10px;
     }
     .reg-login{
         flex-direction: column;
@@ -354,6 +367,17 @@ select{
         height: 100px;
     }
 
+    .my-account{
+        width: 100%;
+        margin: 0 auto;
+    }
+
+    .my-auction-btn{
+        margin-bottom: 10px;
+    }
+
+
+
     .profile-header{
         width: 100%;
         text-align: center;
@@ -361,6 +385,7 @@ select{
 
     .profile-container {
         padding: 10px;
+        width: 105%;
     }
     .email{
         font-size: .7rem;

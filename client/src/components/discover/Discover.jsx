@@ -8,7 +8,7 @@ import "./Discover.css";
 export const DiscoverSection = () => {
   return (
     <div className="discover">
-      <div className="container-2 ">
+      <div className="container-3 ">
         <div className="discover-container">
           <div className="discover-left">
             <div className="discover-left-content">

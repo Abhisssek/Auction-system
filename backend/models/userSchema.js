@@ -48,6 +48,11 @@ const userSchema = new mongoose.Schema({
         type: Number,
         default:0
     },
+    commissionStatus:{
+        type: String,
+        enum:['pending','approved'],
+        
+    },
     auctionWon:{
         type: Number,
         default:0

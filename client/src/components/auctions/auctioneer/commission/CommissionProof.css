@@ -1,0 +1,60 @@
+.commission-container {
+    max-width: 500px;
+    margin: auto;
+    padding: 20px;
+  }
+
+  .auctioneer-commission-proof{
+    border: .5px solid gainsboro;
+    width: 40%;
+    padding: 20px;
+    border-radius: 10px;
+  }
+
+
+
+  .commission-proof-container{
+    margin: 50px auto;
+  }
+  
+  .commission-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 15px;
+  }
+  
+  .commission-user-info p {
+    margin: 5px 0;
+    color: #ccc;
+    font-size: 20px;
+  }
+  
+  .commission-success {
+    margin-top: 20px;
+    color: green;
+    font-weight: bold;
+  }
+  
+  .commission-form label {
+    font-weight: 500;
+  }
+  
+  .commission-form input[type="number"],
+  .commission-form textarea,
+  .commission-form input[type="file"] {
+    width: 90%;
+    margin-bottom: 15px;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+  
+
+  
+  
+  
+
+  .auctioneer-commission-input{
+    width: 30%;
+
+  }

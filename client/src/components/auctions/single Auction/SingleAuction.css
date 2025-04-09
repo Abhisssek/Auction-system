@@ -1,10 +1,16 @@
 /* SingleAuction.css */
 
+
+.single-auction{
+  background-color: #181818;
+}
+
+
 .container-2 {
     display: flex;
     justify-content: center;
     padding: 20px;
-    background-color: #121212;
+    /* background-color: #121212; */
     color: white;
   }
   
@@ -14,7 +20,7 @@
     background: #1e1e1e;
     padding: 20px;
     border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    /* box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); */
   }
   
   /* Left Section: Image Gallery */

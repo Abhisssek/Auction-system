@@ -12,6 +12,8 @@ import { CreateAuction } from './components/auctions/CreateAuction.jsx';
 import { MyAuctions } from './components/auctions/auctioneer/MyAuctions.jsx';
 import { SingleAuction } from './components/auctions/single Auction/SingleAuction.jsx';
 import { AllAuctions } from './components/auctions/all auctions/AllAuctions.jsx';
+import { RepublishAuction } from './components/auctions/auctioneer/RepublishAuction.jsx';
+import { CommissionProof } from './components/auctions/auctioneer/commission/CommissionProof.jsx';
 
 
 
@@ -23,7 +25,9 @@ const router = createBrowserRouter([
   {path: '/create-auction', element: <CreateAuction />},
   {path: '/my-auctions', element: <MyAuctions />},
   {path: "/auction/:id", element: <SingleAuction />},
-  {path: "/all-auctions", element: <AllAuctions />}
+  {path: "/all-auctions", element: <AllAuctions />},
+  {path: "/republish-auction/:auctionId", element: <RepublishAuction />},
+  {path: "/commission-proof", element: <CommissionProof />},
 ])
 
 createRoot(document.getElementById('root')).render(

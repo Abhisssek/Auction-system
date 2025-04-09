@@ -17,6 +17,7 @@ export const AllAuctions = () => {
   const [userRole, setUserRole] = useState("");
   const [userId, setUserId] = useState(null);
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
 
   // Fetch all auctions on mount
   useEffect(() => {
@@ -26,11 +27,16 @@ export const AllAuctions = () => {
 
   const fetchAuctions = async () => {
     try {
-      const response = await fetch("http://localhost:3000/api/v1/auction/allitems", {
-        method: "GET",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-      });
+      setLoading(true); // Show loader
+
+      const response = await fetch(
+        "http://localhost:3000/api/v1/auction/allitems",
+        {
+          method: "GET",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to fetch auctions");
@@ -39,25 +45,32 @@ export const AllAuctions = () => {
       const data = await response.json();
       data.sort((a, b) => new Date(b.starttime) - new Date(a.starttime));
 
-      // Ensure each auction has a currentbid property
       const updatedData = data.map((auction) => ({
         ...auction,
         currentbid: auction.currentbid ?? auction.startingprice,
       }));
 
-      setAuctions(updatedData);
+      // Simulate 3 second delay before showing data
+      setTimeout(() => {
+        setAuctions(updatedData);
+        setLoading(false); // Hide loader after delay
+      }, 2000);
     } catch (error) {
       console.error("Error fetching auctions:", error);
+      setLoading(false); // Ensure loader hides on error
     }
   };
 
   // Fetch user role and ID
   const fetchProfile = async () => {
     try {
-      const response = await fetch("http://localhost:3000/api/v1/user/profile", {
-        method: "GET",
-        credentials: "include",
-      });
+      const response = await fetch(
+        "http://localhost:3000/api/v1/user/profile",
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to fetch profile");
@@ -91,50 +104,60 @@ export const AllAuctions = () => {
     <div className="auctions-container">
       <Navbar />
       <h2>All Auctions</h2>
-      <div className="auctions-grid">
-        {auctions.map((auction) => (
-          <div key={auction._id} className="auction-card">
-            <img
-              src={auction.images?.length > 0 ? auction.images[0].url : "fallback-image-url"}
-              alt={auction.title}
-              className="auction-image"
-              onClick={() => navigate(`/auction/${auction._id}`)}
-              style={{ cursor: "pointer" }}
-            />
-            <div className="auction-text">
-              <h3
-                style={{ cursor: "pointer" }}
-                onClick={() => navigate(`/auction/${auction._id}`)}
-                className="auction-title"
-              >
-                {auction.title}
-              </h3>
-              <p className="auction-description">{auction.description}</p>
-              <p className="auction-price">
-                Artist: <span className="auction-text-span">{auction.artcreater}</span>
-              </p>
-              <p className="auction-price">
-                Category: <span className="auction-text-span">{auction.category}</span>
-              </p>
-              <p className="auction-price">
-                Starting Price: <span style={{ fontWeight: "700" }}>${auction.startingprice}</span>
-              </p>
-              
-              <AuctionCountdown auction={auction} />
 
-              {/* ✅ If the user is an auctioneer, show bid history instead of bid button */}
-              {userRole === "auctioneer" && userId === auction.createdby ? (
-                // <BidHistory bids={auction.bidhistory} />
-                null
-              ) : (
-                <button onClick={() => navigate(`/auction/${auction._id}`)} className="bid-btn secondary-btn">
-                  Start Bidding
-                </button>
-              )}
+      {loading ? (
+        <div className="loader-wrapper">
+          <span className="main-loader"></span>
+        </div>
+      ) : (
+        <div className="auctions-grid">
+          {auctions.map((auction) => (
+            <div key={auction._id} className="auction-card">
+              <img
+                src={
+                  auction.images?.length > 0
+                    ? auction.images[0].url
+                    : "fallback-image-url"
+                }
+                alt={auction.title}
+                className="auction-image"
+                onClick={() => navigate(`/auction/${auction._id}`)}
+                style={{ cursor: "pointer" }}
+              />
+              <div className="auction-text">
+                <h3
+                  style={{ cursor: "pointer" }}
+                  onClick={() => navigate(`/auction/${auction._id}`)}
+                  className="auction-title"
+                >
+                  {auction.title}
+                </h3>
+                <p className="auction-description">{auction.description}</p>
+                <p className="auction-price">
+                  Artist:{" "}
+                  <span className="auction-text-span">
+                    {auction.artcreater}
+                  </span>
+                </p>
+                <p className="auction-price">
+                  Category:{" "}
+                  <span className="auction-text-span">{auction.category}</span>
+                </p>
+                <p className="auction-price">
+                  Starting Price:{" "}
+                  <span style={{ fontWeight: "700" }}>
+                    ${auction.startingprice}
+                  </span>
+                </p>
+
+                <AuctionCountdown auction={auction} />
+
+                {/* ✅ If the user is an auctioneer, show bid history instead of bid button */}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
@@ -178,7 +201,8 @@ const BidHistory = ({ bids }) => {
       <ul>
         {bids.map((bid, index) => (
           <li key={index}>
-            <span className="bid-amount">${bid.amount}</span> by <span className="bid-user">{bid.bidderName}</span>
+            <span className="bid-amount">${bid.amount}</span> by{" "}
+            <span className="bid-user">{bid.bidderName}</span>
           </li>
         ))}
       </ul>

@@ -14,7 +14,6 @@ exports.addNewAuctionItem = async (req, res) => {
     const allowedFormats = ["image/jpeg", "image/png", "image/jpg"];
     console.log("Received files:", req.files);
 
-
     let imageArray = Array.isArray(images) ? images : [images]; // Ensure it's an array
     let uploadedImages = [];
 
@@ -93,13 +92,9 @@ exports.addNewAuctionItem = async (req, res) => {
         .status(400)
         .json({ msg: "You already have an active auction." });
 
-    
-    
-        
-        
-        const newAuction = new Auction({
-          title,
-          description,
+    const newAuction = new Auction({
+      title,
+      description,
       category,
       condition,
       artcreater,
@@ -110,10 +105,10 @@ exports.addNewAuctionItem = async (req, res) => {
       endtime: new Date(endingTime),
       images: uploadedImages, // Store multiple images
       createdby: req.user.id,
-      sellername: User.profilename
+      sellername: User.profilename,
     });
     console.log("Uploaded images array:", uploadedImages);
-    
+
     await newAuction.save();
     return res
       .status(201)
@@ -191,7 +186,9 @@ exports.removeAuction = async (req, res) => {
 
     // Check if the user is the auction creator
     if (auction.createdby.toString() !== req.user.id) {
-      return res.status(403).json({ msg: "Unauthorized to delete this auction." });
+      return res
+        .status(403)
+        .json({ msg: "Unauthorized to delete this auction." });
     }
 
     // Delete auction images from Cloudinary
@@ -216,8 +213,9 @@ exports.removeAuction = async (req, res) => {
 exports.republishAuction = async (req, res) => {
   try {
     const { id } = req.params;
+
     if (!mongoose.Types.ObjectId.isValid(id))
-      return res.status(400).json({ msg: "Invalid auction id." });
+      return res.status(400).json({ msg: "Invalid auction ID." });
 
     let auctionItem = await Auction.findById(id);
     if (!auctionItem)
@@ -228,53 +226,71 @@ exports.republishAuction = async (req, res) => {
         .status(403)
         .json({ msg: "Unauthorized to republish this auction." });
 
-    if (!req.body.startTime || !req.body.endTime) {
+    const { starttime, endtime, newStartingBid } = req.body;
+
+    if (!starttime || !endtime)
       return res
         .status(400)
-        .json({ msg: "Please provide start and end times for republish." });
-    }
-    
+        .json({ msg: "Please provide start and end times for republishing." });
+
     if (new Date(auctionItem.endtime) > Date.now()) {
       return res
         .status(400)
         .json({ msg: "Auction is still active, can't republish." });
     }
 
-    // ✅ Check if any bids exist
+
+    if(auctionItem.currentbid > 0) {
+      return res.status(400).json({ msg: "Auction has bids, can't republish." });
+    }
+
+    // Check if bids exist
     const existingBids = await Bid.find({ auctionItem: auctionItem._id });
     if (existingBids.length > 0) {
-      return res.status(400).json({ msg: "Auction cannot be republished as bids have been placed." });
+      return res
+        .status(400)
+        .json({
+          msg: "Auction cannot be republished as bids have been placed.",
+        });
+    }
+
+    // Validate the new starting bid
+    if (!newStartingBid || isNaN(newStartingBid) || newStartingBid <= 0) {
+      return res
+        .status(400)
+        .json({ msg: "Please provide a valid starting price greater than 0." });
     }
 
     let data = {
-      startTime: req.body.startTime,
-      endTime: req.body.endTime,
+      starttime: new Date(starttime),
+      endtime: new Date(endtime),
+      startingprice: parseFloat(newStartingBid), // Update starting price
+      // currentbid: parseFloat(newStartingBid), // Reset current bid to new starting price
+      bids: [], // Reset bids
+      highestbidder: null,
+      commisioncalculated: false,
+      status: "Active",
     };
 
-    if (data.startTime < Date.now()) {
+    if (data.starttime < Date.now()) {
       return res
         .status(400)
         .json({ msg: "Auction starting time must be in the future." });
     }
-    if (data.startTime >= data.endTime) {
+    if (data.starttime >= data.endtime) {
       return res
         .status(400)
         .json({ msg: "Auction ending time must be after the starting time." });
     }
 
-    data.bids = [];
-    data.highestbidder = null;
-    data.currentbid = auctionItem.startingprice;
-    data.commisioncalculated = false;
-    data.status = "Active";
-
-    auctionItem = await Auction.findByIdAndUpdate(id, data, {
+    const updatedAuction = await Auction.findByIdAndUpdate(id, data, {
       new: true,
       runValidators: true,
-      useFindAndModify: false,
     });
 
-    return res.status(200).json({ msg: "Auction republished successfully.", auctionItem });
+    return res
+      .status(200)
+      .json({ msg: "Auction republished successfully.", updatedAuction });
   } catch (error) {
     console.error("Error republishing auction:", error);
     return res.status(500).json({ msg: error.message });
